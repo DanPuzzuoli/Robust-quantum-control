@@ -82,8 +82,6 @@ def utb_from_diag(diags):
         square dimension, with each list representing a successive diagonal in
         a block upper triangular matrix. Each list is assumed to have length 1
         less than the last, and the last is assumed to have length 1.
-    arg2 : str
-        Description of arg2
 
     Returns
     -------
