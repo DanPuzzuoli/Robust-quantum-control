@@ -9,9 +9,8 @@ Description:
     Currently a working file, but this is a place to put functions for
     creating objectives
 
-Note:
-    Change name of hs_inner to hs_ip (can't recall if its being used by
-    anything else at the moment)
+Notes:
+    
 """
 
 from numpy import real,empty,ndarray
@@ -32,7 +31,7 @@ def grape_objective(Utarget, prop, deriv=0):
     f(x)= hs_inner(Utarget, x)
     """
     def f(x):
-        return hs_inner(Utarget, x)
+        return hs_ip(Utarget, x)
     
     return generalized_grape_objective(f, prop, deriv=deriv)
 
@@ -55,7 +54,7 @@ def generalized_grape_objective(f, prop, deriv = 0):
     if deriv == 0:
         x = f(prop)
         
-        return real(hs_inner(x,x))
+        return real(hs_ip(x,x))
     elif deriv == 1:
         U,Up = prop
         
@@ -71,14 +70,14 @@ def generalized_grape_objective(f, prop, deriv = 0):
         jacobian = empty((N,ctrl_dim), dtype = complex)
         for tstep in range(N):
             for ctrl_i in range(ctrl_dim):
-                jacobian[tstep,ctrl_i] = 2*real(hs_inner(x,f(Up[tstep,ctrl_i])))
+                jacobian[tstep,ctrl_i] = 2*real(hs_ip(x,f(Up[tstep,ctrl_i])))
         
-        return real(hs_inner(x,x)), jacobian
+        return real(hs_ip(x,x)), jacobian
     
         
 
     
-def hs_inner(a,b):
+def hs_ip(a,b):
     """
     Compute the Hilbert-Schmidt inner product of a and b (two matrices given
     as numpy arrays), using the convention that it is conjugate linear in
