@@ -330,7 +330,7 @@ def vexpm(A, verbose=False, norm_multiplier=1):
     # we try to figure out good values for scale_power and
     # pade_order automatically by looking at the norms of A
 
-    h = VectorizedMatrixExpHelper(A)
+    h = A if isinstance(A, VectorizedMatrixExpHelper) else VectorizedMatrixExpHelper(A)
     A_norm = norm_multiplier * h.max_d1
 
     if h.max_d1 < h.theta[3]:
