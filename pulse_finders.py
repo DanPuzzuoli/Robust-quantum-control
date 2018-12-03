@@ -18,9 +18,13 @@ Description:
         -   Calls the scipy minimizers
 
 Notes:
-    - Currently ctrl_shape is being passed, but I suppose it could be deduced
-      from initial_guess
-    - In the future may have multiple optimization algorithms
+    -   Currently ctrl_shape is being passed, but I suppose it could be deduced
+        from initial_guess
+    -   In the future may have multiple optimization algorithms
+    -   At a future date, will also include further functionality for managing
+        optimizations; e.g. automatically quiting searches that have run
+        for too long and restarting, running multiple searches in parallel and
+        choosing best one...
 """
 
 from scipy.optimize import minimize
@@ -157,9 +161,9 @@ def updating_function(f, update_rate):
         # format of the output of f
         if calls % update_rate == 0:
             if type(output) == tuple:
-                print('Value at ' + str(calls) + ' evaluations: '+  str(output[0]))
+                print('Value at evaluation ' + str(calls) + ': '+  str(output[0]))
             else:
-                print('Value at ' + str(calls) + ' evaluations: '+  str(output))
+                print('Value at evaluation ' + str(calls) + ': '+  str(output))
         
         return output
     

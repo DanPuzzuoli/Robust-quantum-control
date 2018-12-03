@@ -34,7 +34,8 @@ def universal_id_xy(initial_guess = None):
     
     
     # a smoothed version of XY4
-    # N=76 -4+10^[-10]
+    # N=76 -4+10^[-10], doesn't find it every time but seems to work pretty
+    # often
     # N=75 -3.99655
     N=76 # number time steps
     dt = 0.05 # time step length
@@ -110,8 +111,10 @@ def x_sys_dec_z():
     dec_z_sys = x_sys.decoupling_system([h.pauliZ()])
     
     
-    #number of time steps and time step length
-    N = 157
+    # So far, shortest time with many 9s is 152, though doesn't find it
+    # every time. Using N=151 has so far resulted in the search terminating
+    # every time at a value of ~ -3.999824
+    N = 152
     dt = 0.0125
     
     # target unitary is pauli X
