@@ -30,7 +30,7 @@ To do:
 """
 
 from numpy import tensordot,kron,identity
-from upper_triangular_matrices import decoupling_gen
+from utb_matrices import decoupling_gen
 
 class control_system:
     

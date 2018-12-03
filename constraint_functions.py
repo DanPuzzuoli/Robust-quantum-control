@@ -30,6 +30,29 @@ To do:
 """
 from numpy import empty,array,ndarray
 
+def mono_objective(x, power_lb, power_ub, power_eps, change_b = None, change_eps = None,n=2, deriv = 0):
+    
+    # first, compute f(x)
+    val = mono_power_constraint(x, power_lb, power_ub, n, power_eps, 0)
+    
+    if change_b is not None:
+        val = val + mono_smoothness_constraint(x, change_b, n, change_eps, 0)
+    
+    # if deriv == 0, return the function value
+    if deriv == 0:
+        return val
+    
+    
+    # next, compute f'(x)
+    vald = mono_power_constraint(x, power_lb, power_ub, n, power_eps, 1)
+    if change_b is not None:
+        vald = vald + mono_smoothness_constraint(x, change_b, n, change_eps, 1)
+    
+    #if deriv == 1, return the function value and derivative
+    if deriv == 1:
+        return val, vald
+
+
 def mono_smoothness_constraint(x,b, n, eps, deriv=0):
     """
     Given a 1d array b representing bounds on the rate of change of each
@@ -74,13 +97,13 @@ def mono_smoothness_constraint(x,b, n, eps, deriv=0):
         # on the step by step differences
         return mono_power_constraint(x[:-1] - x[1:], -b, b, n, eps, 0)
     if deriv == 1:
-        # evaluate the constraint derivatives at each pair of differences
+        # evaluate the constraint derivatives on each pair of differences
         term_derivs = mono_power_constraint(x[:-1] - x[1:], -b, b, n, eps, 1)
         
         jac = empty(x.shape)
         
-        # the first and last entries are the same as the control parameters
-        # for the first and last time step only influence these terms
+        # the derivatives with respect to the first and last time steps
+        # are only influenced by the first and last entries of term_derivs
         jac[0] = term_derivs[0]
         jac[-1] = -term_derivs[-1]
         # populate the rest of jac for the control amplitudes for interior
