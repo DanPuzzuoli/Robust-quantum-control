@@ -26,4 +26,6 @@ As already mentioned, docs/Project_description.pdf contains notes on future func
 
 ## Contributors/Acknowledgements
 
-Currently I (Daniel Puzzuoli) am the sole contributor, though this project has already greatly benefited from discussions with Ian Hincks and Holger Haas. This project also utilizes (and contains) the function vexpm, written by Ian Hincks; which performs vectorized matrix exponentiation.
+Daniel Puzzuoli, Ian Hincks
+
+This project has also benefitted from discussion with Holger Haas.
