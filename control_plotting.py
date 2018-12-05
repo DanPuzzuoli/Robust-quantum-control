@@ -21,6 +21,7 @@ def step_plot(amps, dt, ybound = None):
     amps = append(amps.copy(),[amps[-1]],axis=0)
     
     plt.step(linspace(start = 0, stop=N*dt, num=N+1),amps, where = 'post')
+    plt.show()
     
 def target_robustness_1d(system, amps,dt,Utarget, gvar, vals):
     # initialize the fidelities
@@ -31,3 +32,4 @@ def target_robustness_1d(system, amps,dt,Utarget, gvar, vals):
         fidelities[k] = grape_objective(Utarget, evolve_system(c_sys,amps,dt))/4
     
     plt.plot(vals, fidelities)
+    plt.show()

@@ -10,7 +10,7 @@ Description:
 """
 
 from numpy import real, identity
-import control_systems as css
+import prebuilt_systems as css
 from numpy.random import rand
 import constraint_functions as cons
 from evolve_system import evolve_system
@@ -108,7 +108,8 @@ def x_sys_dec_z():
     x_sys = css.onlyX()
     
     # generate the control system that also compute Z decoupling term
-    dec_z_sys = x_sys.decoupling_system([h.pauliZ()])
+    dec_z_sys = x_sys.decoupling_system(h.pauliZ())
+
     
     
     # So far, shortest time with many 9s is 152, though doesn't find it
@@ -129,8 +130,6 @@ def x_sys_dec_z():
     change_b = 0.025
     change_tol = 0.005
     
-    ctrl_shape = (N, len(dec_z_sys.control_generators))
-    
     def obj(x):
         # fora given control value, propagate the decoupling system, and compute
         # derivatives
@@ -150,6 +149,8 @@ def x_sys_dec_z():
         
         return real(-g + dec+shape/20),real(-gp + decp+ shaped/20)
     
+    
+    ctrl_shape = (N, len(dec_z_sys.control_generators))
     
     res = find_pulse_bfgs(obj, ctrl_shape,rand(*ctrl_shape))
     return res

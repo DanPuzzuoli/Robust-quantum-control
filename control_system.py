@@ -29,7 +29,7 @@ To do:
     
 """
 
-from numpy import tensordot,kron,identity
+from numpy import tensordot,kron,identity, array
 from utb_matrices import decoupling_gen
 
 class control_system:
@@ -44,11 +44,27 @@ class control_system:
         drift : numpy.array
             The drift generator, assumed shape is (dim,dim)
         control_generators : numpy.array
-            The control generators, assumed shape is (c, dim, dim)
+            The control generators, assumed shape is either (c, dim, dim),
+            or (dim, dim) in the case of a single generator, which will then
+            be converted to the shape (1, dim, dim)
     
         """
+        
+        # set the drift
         self.drift = drift
-        self.control_generators = control_generators
+        
+        # Some basic type handling for specifications of control parameters
+        # allows specification as a 3d array, a list of 2d arrays, or as 
+        # a single 2d array.
+        # ultimately want it to be specified as a 3d array
+        if type(control_generators) is list:
+            self.control_generators = array(control_generators)
+        else:    
+            if len(control_generators.shape) == 2:
+                self.control_generators = array([control_generators])
+            else:
+                self.control_generators = control_generators
+            
         self.system_dim = len(drift)
         self.control_dim = len(control_generators)
         
@@ -93,8 +109,25 @@ class control_system:
         """
         Given a list of matrices to decouple, returns a new control system
         for the decoupling problem specified by Alist
+        
+        Parameters
+        ----------
+        Alist : a list of 2d numpy arrays, or a single 2d numpy array
+            The numpy arrays are assumed to have shape (system_dim, system_dim).
+
+        Returns
+        -------
+        A new control_system object corresponding to the system that computes
+        the decoupling terms
+        
         """
+        
+        if type(Alist) is not list:
+            k = 2
+        else:
+            k = len(Alist) + 1
+        
         new_drift = decoupling_gen(self.drift, Alist)
-        new_c_generators = kron(identity(len(Alist)+1),self.control_generators)
+        new_c_generators = kron(identity(k),self.control_generators)
         
         return control_system(new_drift,new_c_generators)

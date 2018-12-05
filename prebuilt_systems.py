@@ -26,7 +26,7 @@ def onlyX():
     has only Pauli X control
     """
     drift = zeros( (2,2) )
-    c_gen = array([-1j*pi*h.pauliX()])
+    c_gen = -1j*pi*h.pauliX()
     
     return control_system(drift,c_gen)
 

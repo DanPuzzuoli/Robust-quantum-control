@@ -55,17 +55,22 @@ def decoupling_gen(G,Alist):
     
     Parameters
     ----------
-    G : numpy.array
+    G : 2d numpy array
         The matrix to appear in the diagonal entries
-    Alist : list of numpy.array
-        The matrices to appear in the first off-diagonal
+    Alist : list of 2d numpy arrays, or 2d numpy array
+        The matrices to appear in the first off-diagonal, assumed to have
+        the same dimension as G.
 
     Returns
     -------
     numpy array
         the desired block upper triangular matrix, as given in the description
     """
-    return utb_from_diag([[G]*(len(Alist)+1), Alist])
+    
+    if type(Alist) is not list:
+        return decoupling_gen(G,[Alist])
+    else:
+        return utb_from_diag([[G]*(len(Alist)+1), Alist])
 
 
 def utb_from_diag(diags):
