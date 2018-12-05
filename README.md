@@ -4,13 +4,13 @@
 
 The goal of this project is to implement algorithms for finding robust control sequences for quantum systems in Python. The computational methods are based on work to be published shortly with coauthors Holger Haas and David Cory. The project is in its very early stages; much of what I would consider the "core" functionality of this project still needs to be added, and as such the structure of the project and its interfaces are liable to change. Nevertheless, the code is functional, and successfully finds control sequences implementing gates that satisfy certain robustness criteria. 
 
-## Documentation and examples
+Examples of functioning searches with simple analysis of the results including figures can be found in the iPython notebooks in the examples directory. 
+
+## Documentation
 
 Documentation is still being built; almost all files and functions are documented, however there is no comprehensive project description/outline. This is primarily because the code will likely change heavily over the next few months. 
 
-Current project-level documentation and examples can be found in: 
-* docs/Project_description.pdf contains a rough project description, as well as notes on future functionality
-* docs/Examples.pdf contains a description and plotted outputs of example control finding problems that are implemented as functions in control_problems.py.
+Current project-level documentation can be found in docs/Project_description.pdf, which contains a rough project description, as well as notes on future functionality.
 
 ## Next features
 
