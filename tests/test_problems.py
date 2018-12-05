@@ -6,8 +6,17 @@ Created on Mon Nov 12 14:48:34 2018
 @author: Daniel Puzzuoli
 
 Description:
-    A place to set up and store control problems
+    This file contains some simple searches for testing.
+
+Notes:
+    These are not even remotely comprehensive tests, but for now they are
+    useful for making sure things are still working after changes.
+    
+    The current tests are the same control searches in the examples.
 """
+
+import sys
+sys.path.append('../')
 
 from numpy import real, identity
 import prebuilt_systems as css
