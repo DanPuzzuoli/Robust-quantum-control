@@ -29,6 +29,7 @@ Notes:
 
 from scipy.optimize import minimize
 from time import time
+from ObjectiveWrapper import ObjectiveWrapper
 
 
 def find_pulse_bfgs(obj, ctrl_shape, initial_guess, update_rate = 100):
@@ -84,12 +85,37 @@ def find_pulse_bfgs(obj, ctrl_shape, initial_guess, update_rate = 100):
     
     return result
 
+def find_pulse_trust_ncg(obj,ctrl_shape, initial_guess, update_rate = 100):
+    start = time()
+    mod_obj = vectorized_function(obj, ctrl_shape, deriv=2)
+    
+    if update_rate is not None:
+        mod_obj = updating_function(mod_obj, update_rate)
+    
+    fun = ObjectiveWrapper(mod_obj)
+    
+    
+    print('Optimizing pulse...')
+    # run the optimization
+    result = minimize(fun, initial_guess.flatten(), method='trust-ncg', jac=fun.grad, hess = fun.hess, options={'disp': True})
+    # reshape the point the optimizer ends on to be the correct shape
+    result.x = result.x.reshape(ctrl_shape)
+    
+    # record the end time and report the total time taken
+    end = time()
+    print('Total time taken: ' + str(end-start))
+    
+    return result
+
 def vectorized_function(f, ctrl_shape, deriv = 0):
     """
     Given a function that takes in numpy arrays of shape ctrl_shape, and returns
     either f(x) or a tuple f(x), jac(f)(x), returns a new function that takes
     in vectorized input, and if f returns a jacobian, also modifies it to 
-    return the flattened jacobian
+    return the flattened jacobian.
+    
+    For the hessian, reshapes it to be square in a way that corresponds correctly
+    to the flattened version of the control variables
     
     Parameters
     ----------
@@ -97,15 +123,28 @@ def vectorized_function(f, ctrl_shape, deriv = 0):
         The function,whose inputs are 2d arrays with shape ctrl_shape. Assumed
         to have different return value forms depending on the input deriv
     ctrl_shape : tuple
-        The shape of the input of f
+        The shape of the input of f, assumed to be (N,dc) where N is the
+        number of time steps, dc is the control dimension
     deriv : int
-        Representing the number of derivatives f returns. If deriv == 0, f 
-        just returns f(x). If deriv == 1, f returns a tuple f(x), jac(f)(x),
-        where jac(f)(x) is a numpy array of shape ctrl_shape
+        Representing the number of derivatives f returns. 
+    
+    Depending on deriv, the following assumptons are made on f:
+        If deriv == 0, 
+            f just returns f(x). 
+        If deriv == 1, 
+            f returns a tuple f(x), jac(f)(x), where jac(f)(x) is a numpy array 
+            of shape ctrl_shape
+        If deriv == 2
+            f returns f(x), jac(f)(x), hess(f)(x), where f and jac(f) are as
+            above, and hess(f)(x) is the hessian of f at x, assumed to be of
+            shape (N,dc,N,dc)
 
     Returns
     -------
-    A modified version of f as described above
+    A vectorized version of f, instead of taking controls as an array of shape
+    ctrl_shape = (N,dc), takes in a flattened array of N*dc, and the output is
+    of the jacobian and hessian are reshaped to correctly correspond to this
+    reshaping of the base variables.
     """
     
     if deriv == 0:
@@ -120,6 +159,15 @@ def vectorized_function(f, ctrl_shape, deriv = 0):
             return val, jac.flatten()
         
         return vecf
+    elif deriv == 2:
+        
+        def vecf(x):
+            val,jac,hess = f(x.reshape(ctrl_shape))
+            
+            return val, jac.flatten(),hess.reshape((ctrl_shape[0]*ctrl_shape[1], ctrl_shape[0]*ctrl_shape[1]))
+        
+        return vecf
+
 
 def updating_function(f, update_rate):
     """
@@ -168,3 +216,4 @@ def updating_function(f, update_rate):
         return output
     
     return upd_f
+    

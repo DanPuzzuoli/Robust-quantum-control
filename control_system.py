@@ -65,8 +65,8 @@ class control_system:
             else:
                 self.control_generators = control_generators
             
-        self.system_dim = len(drift)
-        self.control_dim = len(control_generators)
+        self.system_dim = len(self.drift)
+        self.control_dim = len(self.control_generators)
         
     def generator(self,amps):
         """

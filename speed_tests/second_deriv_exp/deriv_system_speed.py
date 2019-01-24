@@ -15,11 +15,11 @@ from timeit import timeit
 trials = 50
 includeB = True
 
-der = 2
+der = 1
 
 N = 100
-ds = 4
-dc = 2
+ds = 5
+dc = 10
 
 objtime = 0.0
 mattime = 0.0
@@ -53,4 +53,4 @@ for k in range(trials):
 print("obj time: " + str(objtime/trials))
 print("mat time: " + str(mattime/trials))
 print("matmul time: " + str(matmultime/trials))
-print("ratio: " + str(mattime/objtime))
+print("ratio: " + str(matmultime/objtime))

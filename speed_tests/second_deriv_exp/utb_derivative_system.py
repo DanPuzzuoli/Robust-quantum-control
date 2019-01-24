@@ -198,7 +198,7 @@ class utb_derivative_system(object):
     
     def matrixformfull(self):
         
-        full = empty(self.matshape, self.A.dtype)
+        full = empty(self.matshape, dtype = self.A.dtype)
         
         if self.deriv==1:
             for i in range(self.N):

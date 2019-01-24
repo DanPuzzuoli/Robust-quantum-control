@@ -28,7 +28,7 @@ To do:
     e.g. x^2 + y^2 <= ub - epsilon
     - implement Hessian computation
 """
-from numpy import empty,array,ndarray
+from numpy import empty,array,ndarray,zeros
 
 def mono_objective(x, power_lb, power_ub, power_eps, change_b = None, change_eps = None,n=2, deriv = 0):
     
@@ -44,13 +44,21 @@ def mono_objective(x, power_lb, power_ub, power_eps, change_b = None, change_eps
     
     
     # next, compute f'(x)
-    vald = mono_power_constraint(x, power_lb, power_ub, n, power_eps, 1)
+    jac = mono_power_constraint(x, power_lb, power_ub, n, power_eps, 1)
     if change_b is not None:
-        vald = vald + mono_smoothness_constraint(x, change_b, n, change_eps, 1)
+        jac = jac + mono_smoothness_constraint(x, change_b, n, change_eps, 1)
     
     #if deriv == 1, return the function value and derivative
     if deriv == 1:
-        return val, vald
+        return val, jac
+    
+    # compute hessian
+    hess = mono_power_constraint(x, power_lb, power_ub, n, power_eps, 2)
+    if change_b is not None:
+        hess = hess + mono_smoothness_constraint(x, change_b, n, change_eps, 2)
+    
+    if deriv == 2:
+        return val, jac, hess
 
 
 def mono_smoothness_constraint(x,b, n, eps, deriv=0):
@@ -82,7 +90,8 @@ def mono_smoothness_constraint(x,b, n, eps, deriv=0):
 
     Returns
     -------
-    f(x) or f'(x) ( f''(x) not supported )
+    f(x), jac(f)(x) or hess(f)(x).
+    Note: as written hess(f) can be simplified
     """
     
     b = to_1d_array(b)
@@ -114,6 +123,33 @@ def mono_smoothness_constraint(x,b, n, eps, deriv=0):
         jac[1:-1] = -term_derivs[0:-1] + term_derivs[1:]
         
         return jac
+    if deriv == 2:
+        N,dc = x.shape
+        
+        
+        #initialize to zeros as almost all will be zero
+        hess = zeros((N,dc,N,dc))
+        
+        # currently, smoothness is assumed to be an amplitude by amplitude
+        # property
+        for ctrl_i in range(dc):
+            
+            #first, the second derivatives at the same time step, starting with
+            # the beginning and endpoints
+            hess[0,ctrl_i,0,ctrl_i] = mono_constraint_func(x[0,ctrl_i]-x[1,ctrl_i], -b[ctrl_i],b[ctrl_i],n,eps,2)
+            hess[-1,ctrl_i,-1,ctrl_i] = mono_constraint_func(x[-2,ctrl_i]-x[-1,ctrl_i], -b[ctrl_i],b[ctrl_i],n,eps,2)
+            
+            for k in range(1,N-1):
+                hess[k,ctrl_i,k,ctrl_i] = mono_constraint_func(x[k-1,ctrl_i]-x[k,ctrl_i], -b[ctrl_i],b[ctrl_i],n,eps,2)+ mono_constraint_func(x[k,ctrl_i]-x[k+1,ctrl_i], -b[ctrl_i],b[ctrl_i],n,eps,2)
+                
+            # next, second derivatives at adjacent time-steps
+            
+            for k in range(N-1):
+                hess[k,ctrl_i,k+1,ctrl_i] = -mono_constraint_func(x[k,ctrl_i]-x[k+1,ctrl_i], -b[ctrl_i],b[ctrl_i],n,eps,2)
+                hess[k+1,ctrl_i,k,ctrl_i] = hess[k,ctrl_i,k+1,ctrl_i]
+            
+        return hess
+        
     
 def mono_power_constraint(x,lb, ub, n, eps, deriv = 0):
     """
@@ -163,17 +199,29 @@ def mono_power_constraint(x,lb, ub, n, eps, deriv = 0):
         
         return val
     
-    if deriv == 1:
+    elif deriv == 1:
         # compute the constraint function jacobian
         
-        jac = empty(x.shape)
+        jac = empty(x.shape, dtype = float)
         for ctrl_i in range(len(lb)):
             for tstep in range(len(x)):
                 jac[tstep,ctrl_i] = mono_constraint_func(x[tstep,ctrl_i], lb[ctrl_i], ub[ctrl_i], n, eps, 1)
         
         return jac
     
-    
+    elif deriv == 2:
+        
+        N,dc = x.shape
+        
+        # Initialize the hessian to zeros as the off diagonals will all be 0,
+        # as this function has no cross terms
+        hess = zeros((N,dc,N,dc))
+        
+        for ctrl_i in range(dc):
+            for k in range(N):
+                hess[k,ctrl_i,k,ctrl_i] = mono_constraint_func(x[k,ctrl_i], lb[ctrl_i], ub[ctrl_i], n, eps, 2)
+        
+        return hess
 
 def mono_constraint_func(x,lb, ub, n, eps, deriv = 0):
     """
@@ -188,9 +236,8 @@ def mono_constraint_func(x,lb, ub, n, eps, deriv = 0):
     f(lb) = f(ub) = 1. 
     
     if deriv == 0, returns f(x)
-    if deriv == 1, returns f'(x) (jacobian)
-    
-    Currently does not support f''(x) (hessian)
+    if deriv == 1, returns f'(x)
+    if deriv == 2, returns f''(x)
     
     Parameters
     ----------
@@ -220,7 +267,7 @@ def mono_constraint_func(x,lb, ub, n, eps, deriv = 0):
             return n*(((x - (ub - eps))/eps)**(n-1))/eps
         elif x < lb + eps:
             return n*((((lb + eps) - x)/eps)**(n-1))/(-eps)
-    else:
+    elif deriv == 2:
         if lb +eps <= x <= ub - eps:
             return 0
         elif x > ub - eps:

@@ -38,8 +38,8 @@ def grape_objective(Utarget, prop, deriv=0):
 def generalized_grape_objective(f, prop, deriv = 0):
     """
     Given a linear function, f, computes the Frobenius norm squared of
-    f(prop). (Note that technically the function doesn't need to be linear
-    for this function to work, but the form of the derivatives is assumes
+    f(prop). (Note that, if this function will not detect whether f is linear,
+    but the structure of the computation of the derivatives assumes
     f is linear [and so commutes with differentiation]) We assume that
     f maps square arrays to square arrays. Note that even if f is a scalar,
     it should be output as an array
@@ -56,26 +56,70 @@ def generalized_grape_objective(f, prop, deriv = 0):
         
         return real(hs_ip(x,x))
     elif deriv == 1:
-        U,Up = prop
+        U,Ujac = prop
         
         #compute the value of f
         x = f(U)
         
         # get the number of time steps and control parameters
-        N = len(Up)
-        ctrl_dim = len(Up[0])
+        N = len(Ujac)
+        dc = len(Ujac[0])
         
         
         # compute the jacobian
-        jacobian = empty((N,ctrl_dim), dtype = complex)
+        fjac = empty((N,dc), dtype = float)
         for tstep in range(N):
-            for ctrl_i in range(ctrl_dim):
-                jacobian[tstep,ctrl_i] = 2*real(hs_ip(x,f(Up[tstep,ctrl_i])))
+            for ctrl_i in range(dc):
+                fjac[tstep,ctrl_i] = 2*real(hs_ip(x,f(Ujac[tstep,ctrl_i])))
         
-        return real(hs_ip(x,x)), jacobian
+        return real(hs_ip(x,x)), fjac
     
+    elif deriv == 2:
+        # get the final propagator, the jacobian of the propagator, and the
+        # hessian of the propagator
+        U,Ujac,Uhess = prop
+    
+        #compute the output of f
+        x = f(U)
         
-
+        # get number of time steps and control parameters
+        N = len(Ujac)
+        dc = len(Ujac[0])
+        
+        # compute the jacobian 
+        fjac = empty((N,dc), dtype = float)
+        for tstep in range(N):
+            for ctrl_i in range(dc):
+                fjac[tstep,ctrl_i] = 2*real(hs_ip(x,f(Ujac[tstep,ctrl_i])))
+        
+        # compute the hessian
+        # it is assumed that Uhess only has entries (k, ctrl_i, l, ctrl_j)
+        # populated if (k, ctrl_i) <= (l, ctrl_j) in lexicographic ordering,
+        # due to the symmetry
+        fhess = empty((N,dc,N,dc), dtype = float)
+        for k in range(N):
+            for l in range(k,N):
+                for ctrl_i in range(dc):
+                    
+                    # loop over different values of ctrl_j depending on if
+                    # l == k or l > k
+                    if l > k:
+                        for ctrl_j in range(dc):
+                            fhess[k,ctrl_i,l,ctrl_j] =2*( real( hs_ip(f(Ujac[k,ctrl_i]), f(Ujac[l,ctrl_j])) ) + real(hs_ip(x,f(Uhess[k,ctrl_i,l,ctrl_j]))) )
+                            fhess[l,ctrl_j,k,ctrl_i] = fhess[k,ctrl_i,l,ctrl_j]
+                    
+                    else:
+                        # if l == k, only loop through ctrl_j >= ctrl_i
+                        for ctrl_j in range(ctrl_i,dc):
+                            fhess[k,ctrl_i,l,ctrl_j] = 2*( real( hs_ip(f(Ujac[k,ctrl_i]), f(Ujac[l,ctrl_j])) ) + real(hs_ip(x,f(Uhess[k,ctrl_i,l,ctrl_j]))) )
+                            
+                            if ctrl_j > ctrl_i:
+                                fhess[l,ctrl_j,k,ctrl_i] = fhess[k,ctrl_i,l,ctrl_j]
+        
+        return real(hs_ip(x,x)),fjac,fhess
+                        
+                        
+        
     
 def hs_ip(a,b):
     """
