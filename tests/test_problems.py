@@ -73,7 +73,7 @@ def universal_id_xy(initial_guess = None):
         #extract the final unitary, as well as the array of derivatives
         # with respect to control amplitudes
         Ufinal = prop[0][0:2,0:2]
-        Uderiv = prop[1][:,0:2,0:2]
+        Uderiv = prop[1][:,:,0:2,0:2]
         
         # compute the grape objective; the fidelity to the target gate
         # as well its jacobian
@@ -146,7 +146,7 @@ def x_sys_dec_z():
         
         # extract the final unitary and its derivatives
         Ufinal = prop[0][0:2,0:2]
-        Uderiv = prop[1][:,0:2,0:2]
+        Uderiv = prop[1][:,:,0:2,0:2]
 
         # compute the target unitary objective and its derivatives
         g,gp = grape_objective(Utarget, (Ufinal,Uderiv), deriv = 1)
