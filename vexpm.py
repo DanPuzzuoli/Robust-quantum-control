@@ -45,13 +45,7 @@ from __future__ import division
 import warnings
 
 import numpy as np
-
-# matmul = np.matmul
-def matmul(a, b):
-    out = np.empty_like(a)
-    for j in range(a.shape[0]):
-        out[j] = np.dot(a[j], b[j])
-    return out
+from matmult import matmult
 
 
 def _max_onenorm(A):
@@ -89,7 +83,7 @@ class VectorizedMatrixExpHelper(object):
         self._max_d8 = None
         self._max_d10 = None
 
-        self.matmul = matmul
+        self.matmul = matmult
 
     @property
     def dim(self):

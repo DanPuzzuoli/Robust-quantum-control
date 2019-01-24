@@ -23,8 +23,9 @@ To do:
 """
 
 from utb_matrices import decoupling_gen
-from numpy import array,empty,identity,matmul
+from numpy import array,empty,identity
 from vexpm import vexpm
+from matmult import matmult
 
 def evolve_system(system, amps, dt, deriv=0):
     """
@@ -114,7 +115,7 @@ def evolve_system(system, amps, dt, deriv=0):
             
             
             # compute the derivatives of the full propagator
-            full_derivs[ctrl_i] = matmul(matmul(forward[0:N],single_prop_derivs),backward)
+            full_derivs[ctrl_i] = matmult(matmult(forward[0:N],single_prop_derivs),backward)
         
         # return the final propagator, as well as the derivatives of the final
         # propagator w.r.t. control amplitudes. 
