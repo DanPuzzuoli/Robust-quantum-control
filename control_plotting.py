@@ -32,4 +32,5 @@ def target_robustness_1d(system, amps,dt,Utarget, gvar, vals):
         fidelities[k] = grape_objective(Utarget, evolve_system(c_sys,amps,dt))/4
     
     plt.plot(vals, fidelities)
+    plt.ticklabel_format(useOffset=False)
     plt.show()
